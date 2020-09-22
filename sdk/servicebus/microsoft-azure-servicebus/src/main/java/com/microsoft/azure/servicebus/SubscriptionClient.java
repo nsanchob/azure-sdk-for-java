@@ -55,7 +55,7 @@ public final class SubscriptionClient extends InitializableEntity implements ISu
     public SubscriptionClient(String namespace, String subscriptionPath, ClientSettings clientSettings, ReceiveMode receiveMode) throws InterruptedException, ServiceBusException {
         this(Util.convertNamespaceToEndPointURI(namespace), subscriptionPath, clientSettings, receiveMode);
     }
-    
+
     public SubscriptionClient(URI namespaceEndpointURI, String subscriptionPath, ClientSettings clientSettings, ReceiveMode receiveMode) throws InterruptedException, ServiceBusException {
         this(receiveMode, subscriptionPath);
         CompletableFuture<MessagingFactory> factoryFuture = MessagingFactory.createFromNamespaceEndpointURIAsync(namespaceEndpointURI, clientSettings);
@@ -157,8 +157,20 @@ public final class SubscriptionClient extends InitializableEntity implements ISu
 
     @Deprecated
     @Override
+    public void registerSessionHandler(ISessionHandler handler, String sessionId) throws InterruptedException, ServiceBusException {
+        this.messageAndSessionPump.registerSessionHandler(handler, sessionId);
+    }
+
+    @Deprecated
+    @Override
     public void registerSessionHandler(ISessionHandler handler, SessionHandlerOptions handlerOptions) throws InterruptedException, ServiceBusException {
         this.messageAndSessionPump.registerSessionHandler(handler, handlerOptions);
+    }
+
+    @Deprecated
+    @Override
+    public void registerSessionHandler(ISessionHandler handler, SessionHandlerOptions handlerOptions, String sessionId) throws InterruptedException, ServiceBusException {
+        this.messageAndSessionPump.registerSessionHandler(handler, handlerOptions, sessionId);
     }
 
     @Override
@@ -177,8 +189,18 @@ public final class SubscriptionClient extends InitializableEntity implements ISu
     }
 
     @Override
+    public void registerSessionHandler(ISessionHandler handler, String sessionId, ExecutorService executorService) throws InterruptedException, ServiceBusException {
+        this.messageAndSessionPump.registerSessionHandler(handler, sessionId, executorService);
+    }
+
+    @Override
     public void registerSessionHandler(ISessionHandler handler, SessionHandlerOptions handlerOptions, ExecutorService executorService) throws InterruptedException, ServiceBusException {
         this.messageAndSessionPump.registerSessionHandler(handler, handlerOptions, executorService);
+    }
+
+    @Override
+    public void registerSessionHandler(ISessionHandler handler, SessionHandlerOptions handlerOptions, String sessionId, ExecutorService executorService) throws InterruptedException, ServiceBusException {
+        this.messageAndSessionPump.registerSessionHandler(handler, handlerOptions, sessionId, executorService);
     }
 
     // No op now

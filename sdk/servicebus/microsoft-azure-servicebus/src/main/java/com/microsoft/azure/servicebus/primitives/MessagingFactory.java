@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
 
 import com.microsoft.azure.servicebus.TransactionContext;
 import com.microsoft.azure.servicebus.Utils;
@@ -42,6 +43,7 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import com.microsoft.azure.servicebus.ClientSettings;
+import com.microsoft.azure.servicebus.NamedThreadFactory;
 import com.microsoft.azure.servicebus.security.SecurityToken;
 
 /**
@@ -52,7 +54,8 @@ import com.microsoft.azure.servicebus.security.SecurityToken;
  */
 public class MessagingFactory extends ClientEntity implements IAmqpConnection {
     private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(MessagingFactory.class);
-    public static final ExecutorService INTERNAL_THREAD_POOL = Executors.newCachedThreadPool();
+    private static final ThreadFactory INTERNAL_THREAD_FACTORY = new NamedThreadFactory("asb-messaging");
+    public static final ExecutorService INTERNAL_THREAD_POOL = Executors.newCachedThreadPool(INTERNAL_THREAD_FACTORY);
 
     private static final String REACTOR_THREAD_NAME_PREFIX = "ReactorThread";
     private static final int MAX_CBS_LINK_CREATION_ATTEMPTS = 3;
@@ -268,7 +271,7 @@ public class MessagingFactory extends ClientEntity implements IAmqpConnection {
     public static CompletableFuture<MessagingFactory> createFromNamespaceNameAsyc(String sbNamespaceName, ClientSettings clientSettings) {
         return createFromNamespaceEndpointURIAsync(Util.convertNamespaceToEndPointURI(sbNamespaceName), clientSettings);
     }
-    
+
     /**
      * Creates a messaging factory instance from namesapce name and client settings
      * @param sbNamespaceName name of the namespace
@@ -278,7 +281,7 @@ public class MessagingFactory extends ClientEntity implements IAmqpConnection {
     public static CompletableFuture<MessagingFactory> createFromNamespaceNameAsync(String sbNamespaceName, ClientSettings clientSettings) {
         return createFromNamespaceEndpointURIAsync(Util.convertNamespaceToEndPointURI(sbNamespaceName), clientSettings);
     }
-    
+
     /**
      * Creates a messaging factory instance from namesapce endpoint URI and client settings
      * @param namespaceEndpointURI Endpoint URI of the namespace
@@ -301,7 +304,7 @@ public class MessagingFactory extends ClientEntity implements IAmqpConnection {
         if (TRACE_LOGGER.isInfoEnabled()) {
             TRACE_LOGGER.info("Creating messaging factory from namespace endpoint uri '{}'", namespaceEndpointURI.toString());
         }
-        
+
         MessagingFactory messagingFactory = new MessagingFactory(namespaceEndpointURI, clientSettings);
         try {
             messagingFactory.startReactor(messagingFactory.reactorHandler);
@@ -324,7 +327,7 @@ public class MessagingFactory extends ClientEntity implements IAmqpConnection {
     public static MessagingFactory createFromNamespaceName(String sbNamespaceName, ClientSettings clientSettings) throws InterruptedException, ServiceBusException {
         return completeFuture(createFromNamespaceNameAsync(sbNamespaceName, clientSettings));
     }
-    
+
     /**
      * Creates a messaging factory instance from namesapce endpoint URI and client settings
      * @param namespaceEndpointURI Endpoint URI of the namespace
@@ -734,7 +737,7 @@ public class MessagingFactory extends ClientEntity implements IAmqpConnection {
                     } else {
                         this.cbsLink = cbsLink;
                         this.cbsLinkCreationFuture.complete(null);
-                    }                    
+                    }
                 } else {
                     this.lastCBSLinkCreationException = ExceptionUtil.extractAsyncCompletionCause(ex);
                     TRACE_LOGGER.info("Creating CBS link to {} failed. Attempts '{}'", requestResponseLinkPath, this.cbsLinkCreationAttempts);

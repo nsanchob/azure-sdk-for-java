@@ -8,16 +8,19 @@ import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.microsoft.azure.servicebus.NamedThreadFactory;
 
 /**
  * An abstraction for a Scheduler functionality - which can later be replaced by a light-weight Thread
  */
 public final class Timer {
+    private static final ThreadFactory TIMER_THREAD_FACTORY = new NamedThreadFactory("asb-timer");
     private static ScheduledExecutorService executor = null;
 
     private static final Logger TRACE_LOGGER = LoggerFactory.getLogger(Timer.class);
@@ -46,7 +49,7 @@ public final class Timer {
                 final int corePoolSize = Math.max(Runtime.getRuntime().availableProcessors(), 4);
                 TRACE_LOGGER.debug("Starting ScheduledThreadPoolExecutor with coreThreadPoolSize:{}", corePoolSize);
 
-                executor = Executors.newScheduledThreadPool(corePoolSize);
+                executor = Executors.newScheduledThreadPool(corePoolSize, TIMER_THREAD_FACTORY);
             }
 
             REFERENCES.add(clientId);
